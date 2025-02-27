@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay } from "date-fns";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import "./calendar.css"; // Import external CSS file
@@ -9,62 +9,100 @@ export default function DayPlanner() {
   const [tasks, setTasks] = useState({});
   const [newTask, setNewTask] = useState("");
 
-  const prevMonth = () => {
-    setCurrentMonth(addDays(currentMonth, -30));
-  };
+  // ✅ Fetch tasks from backend when selectedDate changes
+  useEffect(() => {
+    fetchTasks();
+  }, [selectedDate]);
 
-  const nextMonth = () => {
-    setCurrentMonth(addDays(currentMonth, 30));
-  };
+  const fetchTasks = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/tasks");
+      const data = await res.json();
+      const formattedTasks = {};
+      
+      data.forEach(task => {
+        const dateKey = format(new Date(task.date), "yyyy-MM-dd");
+        if (!formattedTasks[dateKey]) {
+          formattedTasks[dateKey] = [];
+        }
+        formattedTasks[dateKey].push({ id: task.id, title: task.title });
+      });
 
-  const generateCalendar = () => {
-    const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart);
-    const endDate = endOfWeek(monthEnd);
-
-    let day = startDate;
-    const calendar = [];
-    while (day <= endDate) {
-      calendar.push(day);
-      day = addDays(day, 1);
+      setTasks(formattedTasks);
+    } catch (err) {
+      console.error("Error fetching tasks:", err);
     }
-    return calendar;
   };
 
-  const addTask = () => {
+  const addTask = async () => {
     if (newTask.trim() === "") return;
-    setTasks({
-      ...tasks,
-      [format(selectedDate, "yyyy-MM-dd")]: [
-        ...(tasks[format(selectedDate, "yyyy-MM-dd")] || []),
-        newTask,
-      ],
-    });
-    setNewTask("");
+
+    const dateKey = format(selectedDate, "yyyy-MM-dd");
+
+    try {
+      const res = await fetch("http://localhost:5000/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTask, date: dateKey }),
+      });
+
+      if (res.ok) {
+        const newTaskObj = await res.json();
+        setTasks({
+          ...tasks,
+          [dateKey]: [...(tasks[dateKey] || []), { id: newTaskObj.taskId, title: newTask }],
+        });
+        setNewTask("");
+      } else {
+        console.error("Failed to add task");
+      }
+    } catch (err) {
+      console.error("Error adding task:", err);
+    }
   };
 
-  const removeTask = (taskIndex) => {
-    const dateKey = format(selectedDate, "yyyy-MM-dd");
-    const updatedTasks = (tasks[dateKey] || []).filter((_, index) => index !== taskIndex);
-    setTasks({
-      ...tasks,
-      [dateKey]: updatedTasks,
-    });
+  const removeTask = async (taskId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/tasks/${taskId}`, { method: "DELETE" });
+      if (res.ok) {
+        const dateKey = format(selectedDate, "yyyy-MM-dd");
+        setTasks({
+          ...tasks,
+          [dateKey]: tasks[dateKey].filter(task => task.id !== taskId),
+        });
+      } else {
+        console.error("Failed to delete task");
+      }
+    } catch (err) {
+      console.error("Error deleting task:", err);
+    }
   };
 
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        <button onClick={prevMonth} className="nav-button"><ChevronLeft /></button>
+        <button onClick={() => setCurrentMonth(addDays(currentMonth, -30))} className="nav-button"><ChevronLeft /></button>
         <h2>{format(currentMonth, "MMMM yyyy")}</h2>
-        <button onClick={nextMonth} className="nav-button"><ChevronRight /></button>
+        <button onClick={() => setCurrentMonth(addDays(currentMonth, 30))} className="nav-button"><ChevronRight /></button>
       </div>
       <div className="calendar-grid">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
           <div key={day} className="calendar-day-header">{day}</div>
         ))}
-        {generateCalendar().map((day, index) => (
+        {(() => {
+          const monthStart = startOfMonth(currentMonth);
+          const monthEnd = endOfMonth(monthStart);
+          const startDate = startOfWeek(monthStart);
+          const endDate = endOfWeek(monthEnd);
+
+          let day = startDate;
+          const calendar = [];
+          while (day <= endDate) {
+            calendar.push(day);
+            day = addDays(day, 1);
+          }
+          return calendar;
+        })().map((day, index) => (
           <button
             key={index}
             onClick={() => setSelectedDate(day)}
@@ -90,10 +128,10 @@ export default function DayPlanner() {
         <div className="task-list">
           <h4>Tasks:</h4>
           <ul>
-            {(tasks[format(selectedDate, "yyyy-MM-dd")] || []).map((task, index) => (
-              <li key={index} className="task-item">
-                {task}
-                <button className="delete-task-button" onClick={() => removeTask(index)}>
+            {(tasks[format(selectedDate, "yyyy-MM-dd")] || []).map(task => (
+              <li key={task.id} className="task-item">
+                {task.title}
+                <button className="delete-task-button" onClick={() => removeTask(task.id)}>
                   <Trash2 className="w-4 h-4 text-red-500" />
                 </button>
               </li>
