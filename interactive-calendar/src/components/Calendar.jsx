@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import "./calendar.css"; // Import external CSS file
 
-export default function Calendar() {
+export default function DayPlanner() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [tasks, setTasks] = useState({});
@@ -44,6 +44,15 @@ export default function Calendar() {
     setNewTask("");
   };
 
+  const removeTask = (taskIndex) => {
+    const dateKey = format(selectedDate, "yyyy-MM-dd");
+    const updatedTasks = (tasks[dateKey] || []).filter((_, index) => index !== taskIndex);
+    setTasks({
+      ...tasks,
+      [dateKey]: updatedTasks,
+    });
+  };
+
   return (
     <div className="calendar-container">
       <div className="calendar-header">
@@ -82,7 +91,12 @@ export default function Calendar() {
           <h4>Tasks:</h4>
           <ul>
             {(tasks[format(selectedDate, "yyyy-MM-dd")] || []).map((task, index) => (
-              <li key={index} className="task-item">{task}</li>
+              <li key={index} className="task-item">
+                {task}
+                <button className="delete-task-button" onClick={() => removeTask(index)}>
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                </button>
+              </li>
             ))}
           </ul>
         </div>
