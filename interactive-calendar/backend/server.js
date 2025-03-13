@@ -35,21 +35,35 @@ app.get('/', (req, res) => {
 
 // **Get All Tasks**
 app.get('/tasks', (req, res) => {
-    db.query('SELECT * FROM tasks', (err, results) => {
+    db.query('SELECT id, title, date, COALESCE(color, "#007bff") AS color, COALESCE(category, "General") AS category FROM tasks', (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
     });
 });
 
-// **Add a New Task**
+// **Add a New Task with Color & Category**
 app.post('/tasks', (req, res) => {
-    const { title, date } = req.body;
+    const { title, date, color, category } = req.body;
+    
+    console.log("Incoming Task Data:", req.body); // Debugging Log
+
     if (!title || !date) return res.status(400).json({ error: "Title and date are required" });
 
-    db.query('INSERT INTO tasks (title, date) VALUES (?, ?)', [title, date], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: 'Task added successfully', taskId: result.insertId });
-    });
+    const taskColor = color || "#007bff";
+    const taskCategory = category || "General";
+    
+    db.query(
+        'INSERT INTO tasks (title, date, color, category) VALUES (?, ?, ?, ?)',
+        [title, date, taskColor, taskCategory],
+        (err, result) => {
+            if (err) {
+                console.error("Error adding task:", err);
+                return res.status(500).json({ error: "Database error: " + err.message });
+            }
+            console.log("Task Added:", { id: result.insertId, title, date, taskColor, taskCategory });
+            res.json({ message: 'Task added successfully', taskId: result.insertId });
+        }
+    );
 });
 
 // **Delete a Task**
@@ -65,4 +79,3 @@ app.delete('/tasks/:id', (req, res) => {
 app.listen(PORT, () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
 });
-

@@ -1,125 +1,251 @@
-/* General Calendar Container */
+/* General Calendar Container - Adjusted for Scrollable Layout */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  font-family: Arial, sans-serif;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background-color: #f4f4f4;
+}
+
 .calendar-container {
-    max-width: 500px;
-    margin: 40px auto;
-    padding: 20px;
-    border-radius: 8px;
-    background-color: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    font-family: Arial, sans-serif;
-  }
-  
-  /* Header Styling */
-  .calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  
-  .nav-button {
-    background-color: #f0f0f0;
-    border: none;
-    padding: 8px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .nav-button:hover {
-    background-color: #d6d6d6;
-  }
-  
-  /* Grid Layout for Days */
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-    margin-top: 10px;
-  }
-  
-  .calendar-day-header {
-    font-weight: bold;
-    padding: 5px;
-    color: #444;
-  }
-  
-  /* Calendar Day Buttons */
-  .calendar-day {
-    padding: 12px;
-    border: none;
-    cursor: pointer;
-    background-color: #f9f9f9;
-    border-radius: 5px;
-    font-size: 16px;
-    text-align: center;
-    transition: background 0.3s ease-in-out;
-  }
-  
-  .current-month {
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-  }
-  
-  .other-month {
-    background-color: #f0f0f0;
-    color: #999;
-  }
-  
-  .selected {
-    background-color: #007bff;
-    color: white;
-    border: 1px solid #0056b3;
-  }
-  
-  .calendar-day:hover {
-    background-color: #dbeafe;
-  }
-  
-  /* Task Section */
-  .task-section {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 8px;
-    background-color: #f8f9fa;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .task-input {
-    width: 100%;
-    padding: 8px;
-    margin-top: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .add-task-button {
-    width: 100%;
-    margin-top: 10px;
-    padding: 10px;
-    border: none;
-    background-color: #007bff;
-    color: white;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .add-task-button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Task List */
-  .task-list {
-    margin-top: 15px;
-    text-align: left;
-  }
-  
-  .task-item {
-    padding: 8px;
-    margin-top: 5px;
-    background-color: #e9ecef;
-    border-radius: 5px;
-    list-style: none;
-  }
-  
+  width: 95vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #ffffff;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Ensure Logout Button is always visible */
+.logout-button {
+  position: sticky;
+  top: 10px;
+  z-index: 100;
+  background-color: #ff4d4d;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.logout-button:hover {
+  background-color: #cc0000;
+}
+
+/* Header Styling */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 85vw;
+  max-width: 1100px;
+  margin-bottom: 10px;
+}
+
+.nav-button {
+  background-color: #f0f0f0;
+  border: none;
+  padding: 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.nav-button:hover {
+  background-color: #d6d6d6;
+}
+
+/* Grid Layout for Days */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  width: 85vw;
+  max-width: 1100px;
+  min-height: 65vh;
+  align-items: start;
+}
+
+/* Calendar Day Buttons */
+.calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 90px;
+  border: none;
+  cursor: pointer;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: background 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+  min-height: 90px;
+}
+
+/* Keep numbers visible */
+.date-number {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+/* Task Preview inside Calendar */
+.task-preview {
+  font-size: 10px;
+  color: #333;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 20px;
+}
+
+/* Tasks Inside the Calendar */
+.task-in-calendar {
+  background-color: rgba(0, 123, 255, 0.2);
+  border-radius: 4px;
+  padding: 2px 5px;
+  margin-top: 2px;
+  font-size: 10px;
+  text-align: center;
+}
+
+/* Centering the Task Section */
+.task-section {
+  width: 85vw;
+  max-width: 550px;
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.task-input {
+  width: 100%;
+  padding: 6px;
+  margin-top: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.add-task-button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-task-button:hover {
+  background-color: #0056b3;
+}
+
+.task-list {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.task-item {
+  padding: 6px;
+  margin-top: 4px;
+  background-color: #e9ecef;
+  border-radius: 5px;
+  list-style: none;
+  text-align: center;
+}
+
+/* Login Page Centering */
+.login-container {
+  width: 95vw;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+}
+
+.login-box {
+  max-width: 300px;
+  padding: 18px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.login-container h2 {
+  margin-bottom: 12px;
+}
+
+.login-container input {
+  width: 90%;
+  padding: 6px;
+  margin: 6px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.login-container button {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.login-container button:hover {
+  background-color: #0056b3;
+}
+
+.error {
+  color: red;
+  margin-top: 8px;
+}
+
+.task-color-picker {
+  margin-top: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.task-category {
+  margin-top: 8px;
+  padding: 6px;
+  border-radius: 5px;
+}
+
+.task-in-calendar {
+  border-radius: 4px;
+  padding: 2px 5px;
+  margin-top: 2px;
+  font-size: 10px;
+  text-align: center;
+  color: white;
+}
